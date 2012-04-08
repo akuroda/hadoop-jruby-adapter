@@ -1,0 +1,75 @@
+hadoop-jruby-adapter
+
+1. Summary
+This library provides adapter classes to write MapReduce in JRuby.
+Developed for hadoop-0.23.0-cdh4b1, but should work fine as long as using new API(org.apache.hadoop.mapreduce).
+
+2. Sample
+# mapper
+class CountMapper
+  def initialize
+    @one = IntWritable.new(1)
+    @word = Text.new
+  end
+
+  java_signature 'void map(Writable, Writable, Mapper.Context)'
+  def map(key, value, context)
+    #puts "mapper: #{value}"
+    value.to_s.split.each do |i|
+      @word.set(i)
+      context.write(@word, @one)
+    end
+  end
+end
+
+# reducer
+class CountReducer
+  java_signature 'void reduce(Writable, Iterable, Reducer.Context)'
+  def reduce(key, values, context)
+    #puts "reducer: #{key}"
+    sum = 0
+    values.each do |i|
+      sum += i.get
+    end
+    context.write key, IntWritable.new(sum)
+  end
+end
+
+# main
+class MapReduceTestMain
+
+  java_signature 'void main(String[])'
+  def self.main(args)
+    puts "MapReduceTest"
+    job = Job.instance
+   
+    # set MapperAdapter's subclass
+    job.mapperClass = CountMapperAdapter.java_class
+    puts job.mapperClass
+    job.mapOutputKeyClass = Text.java_class
+    puts job.mapOutputKeyClass
+    job.mapOutputValueClass = IntWritable.java_class
+    puts job.mapOutputValueClass
+
+    # set ReducerAdapter's subclass
+    job.reducerClass = CountReducerAdapter.java_class
+    puts job.getReducerClass
+    job.outputKeyClass = Text.java_class
+    puts job.getOutputKeyClass
+    job.outputValueClass = IntWritable.java_class
+    puts job.getOutputValueClass
+
+    FileInputFormat.addInputPath job, Path.new(args[0])
+    FileOutputFormat.setOutputPath job, Path.new(args[1])
+
+    job.waitForCompletion true
+  end
+end
+
+3. Limitation
+Currently support only Mapper and Reducer.
+Need to write subclasses of MapperAdapter and ReducerAdapter in Java.
+
+4. License
+Copyright (c) 2012 Akira Kuroda <akuroda@gmail.com>
+Released under MIT License.

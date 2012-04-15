@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<configuration>
+	<property>
+		<name>mapperadapter.class</name>
+		<value>com.akuroda.hadoop.jrubyexample.CountMapper</value>
+	</property>
+	<property>
+		<name>reduceradapter.class</name>
+		<value>com.akuroda.hadoop.jrubyexample.CountReducer</value>
+	</property>
+</configuration>

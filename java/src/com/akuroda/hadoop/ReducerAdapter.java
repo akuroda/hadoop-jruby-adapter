@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.jruby.RubyObject;
@@ -26,6 +28,20 @@ public class ReducerAdapter extends
 	 * the subclass should set jruby reducer object using setReducer() in the constructor
 	 */
 	public ReducerAdapter() {
+		Class c = null;
+		Configuration conf = new Configuration();
+		conf.addResource("hadoop-jruby-adapter-conf.xml");
+		try {
+			String mapperClass = conf.get("reduceradapter.class");
+			c = Class.forName(mapperClass);
+			obj = (RubyObject)c.newInstance();
+		} catch (ClassNotFoundException cnfe) {
+			throw new RuntimeException(cnfe);
+		} catch (InstantiationException ie) {
+			throw new RuntimeException(ie);
+		} catch (IllegalAccessException iae) {
+			throw new RuntimeException(iae);
+		}
 	}
 
 	/**
@@ -41,14 +57,6 @@ public class ReducerAdapter extends
 			logger.warning("ReducerAdapter: cannot find map method, use default mapper method");
 		}
 		return method;
-	}
-	
-	/**
-	 * set jruby reducer object
-	 * @param obj jruby reducer object
-	 */
-	protected void setReducer(RubyObject obj) {
-		this.obj = obj;
 	}
 
 	/**

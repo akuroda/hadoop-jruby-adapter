@@ -4,7 +4,13 @@ hadoop-jruby-adapter
 This library provides adapter classes to write MapReduce in JRuby.
 Developed for hadoop-0.23.0-cdh4b1, but should work fine as long as using new API(org.apache.hadoop.mapreduce).
 
-2. Sample
+2. How to use
+- write main class in JRuby
+- write Mapper and Reducer in JRuby
+- set mapper and reducer class in hadoop-jruby-adapter-conf.xml
+- compile jruby classes using jruby --javac
+
+3. Sample
 # mapper
 class CountMapper
   def initialize
@@ -43,21 +49,21 @@ class MapReduceTestMain
     puts "MapReduceTest"
     job = Job.instance
    
-    # set MapperAdapter's subclass
-    job.mapperClass = CountMapperAdapter.java_class
+    # set actual mapper via hadoop-jruby-adapter-conf.xml
+    job.mapperClass = MapperAdapter.java_class
     puts job.mapperClass
     job.mapOutputKeyClass = Text.java_class
     puts job.mapOutputKeyClass
     job.mapOutputValueClass = IntWritable.java_class
     puts job.mapOutputValueClass
 
-    # set ReducerAdapter's subclass
-    job.reducerClass = CountReducerAdapter.java_class
-    puts job.getReducerClass
+    # set actual reducer via hadoop-jruby-adapter-conf.xml
+    job.reducerClass = ReducerAdapter.java_class
+    puts job.reducerClass
     job.outputKeyClass = Text.java_class
-    puts job.getOutputKeyClass
+    puts job.outputKeyClass
     job.outputValueClass = IntWritable.java_class
-    puts job.getOutputValueClass
+    puts job.outputValueClass
 
     FileInputFormat.addInputPath job, Path.new(args[0])
     FileOutputFormat.setOutputPath job, Path.new(args[1])
@@ -66,10 +72,9 @@ class MapReduceTestMain
   end
 end
 
-3. Limitation
+4. Limitation
 Currently support only Mapper and Reducer.
-Need to write subclasses of MapperAdapter and ReducerAdapter in Java.
 
-4. License
+5. License
 Copyright (c) 2012 Akira Kuroda <akuroda@gmail.com>
 Released under MIT License.

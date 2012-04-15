@@ -1,12 +1,14 @@
 package com.akuroda.hadoop;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.logging.Logger;
-import org.jruby.RubyObject;
-import org.apache.hadoop.mapreduce.Mapper;
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.jruby.RubyObject;
 
 /**
  * Adapter for forwarding mapreduce Mapper methods to jruby Mapper methods
@@ -26,6 +28,20 @@ public class MapperAdapter extends
 	 * the subclass should set jruby mapper object using setMapper() in the constructor
 	 */
 	public MapperAdapter() {
+		Class c = null;
+		Configuration conf = new Configuration();
+		conf.addResource("hadoop-jruby-adapter-conf.xml");
+		try {
+			String mapperClass = conf.get("mapperadapter.class");
+			c = Class.forName(mapperClass);
+			obj = (RubyObject)c.newInstance();
+		} catch (ClassNotFoundException cnfe) {
+			throw new RuntimeException(cnfe);
+		} catch (InstantiationException ie) {
+			throw new RuntimeException(ie);
+		} catch (IllegalAccessException iae) {
+			throw new RuntimeException(iae);
+		}
 	}
 	
 	/**
@@ -41,14 +57,6 @@ public class MapperAdapter extends
 			logger.warning("MapperAdapter: cannot find map method, use default mapper method");
 		}
 		return method;
-	}
-	
-	/**
-	 * set jruby reducer object
-	 * @param obj jruby Mapper object
-	 */
-	protected void setMapper(RubyObject obj) {
-		this.obj = obj;
 	}
 
 	/**
